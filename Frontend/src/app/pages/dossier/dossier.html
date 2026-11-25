@@ -1,0 +1,165 @@
+<div class="bg-light py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 mb-0">
+        <a routerLink="/">Accueil</a> <span class="mx-2 mb-0">/</span>
+        <strong class="text-black">Dossier médical</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="site-section">
+  <div class="container">
+
+    @if (chargement()) {
+      <p>Chargement du dossier…</p>
+    } @else if (erreur(); as message) {
+      <div class="alert alert-danger">{{ message }}</div>
+    } @else if (dossier(); as d) {
+
+      <h2 class="h3 mb-4 text-black">Dossier médical</h2>
+
+      <!-- Fiche du patient -->
+      <div class="row mb-5">
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="p-4 bg-light rounded">
+            <span class="d-block text-black h6 text-uppercase">Patient</span>
+            <p class="mb-0 h4">N° {{ d.patientId }}</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="p-4 bg-light rounded">
+            <span class="d-block text-black h6 text-uppercase">Groupe sanguin</span>
+            @if (d.groupeSanguin) {
+              <p class="mb-0 h4 text-primary"><strong>{{ d.groupeSanguin }}</strong></p>
+            } @else {
+              <p class="mb-0">Non renseigné</p>
+            }
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-4 bg-light rounded">
+            <span class="d-block text-black h6 text-uppercase">Dernière mise à jour</span>
+            <p class="mb-0">{{ d.dateMiseAJour | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onglets -->
+      <ul class="nav nav-pills mb-4 custom-pill" role="tablist">
+        @for (onglet of onglets; track onglet.id) {
+          <li class="nav-item">
+            <a class="nav-link" href="#" role="tab"
+               [class.active]="ongletActif() === onglet.id"
+               [attr.aria-selected]="ongletActif() === onglet.id"
+               (click)="choisirOnglet($event, onglet.id)">
+              {{ onglet.libelle }}
+              <span class="badge badge-light ml-1">{{ compteurs()[onglet.id] }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+
+      <div role="tabpanel">
+        @switch (ongletActif()) {
+
+          @case ('allergies') {
+            @if (d.allergies.length) {
+              <div class="table-responsive">
+                <table class="table table-bordered custom-table">
+                  <thead>
+                    <tr><th>Substance</th><th>Gravité</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (a of d.allergies; track a.id) {
+                      <tr>
+                        <td>{{ a.substance }}</td>
+                        <td>
+                          <span [class]="'badge ' + classeGravite[a.gravite]">{{ libelleGravite[a.gravite] }}</span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p>Aucune allergie enregistrée.</p>
+            }
+          }
+
+          @case ('antecedents') {
+            @if (d.antecedents.length) {
+              <div class="table-responsive">
+                <table class="table table-bordered custom-table">
+                  <thead>
+                    <tr><th>Date</th><th>Description</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (a of d.antecedents; track a.id) {
+                      <tr>
+                        <td>{{ a.date | date: 'dd/MM/yyyy' }}</td>
+                        <td>{{ a.description }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p>Aucun antécédent enregistré.</p>
+            }
+          }
+
+          @case ('consultations') {
+            @if (d.consultations.length) {
+              <div class="table-responsive">
+                <table class="table table-bordered custom-table">
+                  <thead>
+                    <tr><th>Date</th><th>Diagnostic</th><th>Notes</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (c of d.consultations; track c.id) {
+                      <tr>
+                        <td>{{ c.date | date: 'dd/MM/yyyy HH:mm' }}</td>
+                        <td>{{ c.diagnostic }}</td>
+                        <td>{{ c.notes || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p>Aucune consultation enregistrée.</p>
+            }
+          }
+
+          @case ('documents') {
+            @if (d.documents.length) {
+              <div class="table-responsive">
+                <table class="table table-bordered custom-table">
+                  <thead>
+                    <tr><th>Type</th><th>Fichier</th><th>Ajouté le</th><th></th></tr>
+                  </thead>
+                  <tbody>
+                    @for (doc of d.documents; track doc.id) {
+                      <tr>
+                        <td>{{ libelleTypeDocument[doc.type] }}</td>
+                        <td>{{ doc.nomFichier }}</td>
+                        <td>{{ doc.date | date: 'dd/MM/yyyy HH:mm' }}</td>
+                        <td><a [href]="doc.url" target="_blank" rel="noopener">Ouvrir</a></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p>Aucun document enregistré.</p>
+            }
+          }
+
+        }
+      </div>
+    }
+
+  </div>
+</div>
